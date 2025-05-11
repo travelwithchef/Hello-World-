@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Cities - Top Cities by Continent</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+        }
+        .select-container {
+            margin: 20px 0;
+        }
+        select {
+            padding: 10px;
+            font-size: 16px;
+            width: 100%;
+            max-width: 400px;
+        }
+        #city-info {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e2e2e2;
+        }
+        .city {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Explore the Top Cities of the World</h1>
+
+        <!-- Continent Dropdown -->
+        <div class="select-container">
+            <label for="continent-select">Select Continent:</label>
+            <select id="continent-select">
+                <option value="">-- Select Continent --</option>
+                <option value="Africa">Africa</option>
+                <option value="Asia">Asia</option>
+                <option value="Europe">Europe</option>
+                <option value="North America">North America</option>
+                <option value="Oceania">Oceania</option>
+                <option value="South America">South America</option>
+            </select>
+        </div>
+
+        <!-- Country Dropdown -->
+        <div class="select-container">
+            <label for="country-select">Select Country:</label>
+            <select id="country-select" disabled>
+                <option value="">-- Select Country --</option>
+            </select>
+        </div>
+
+        <!-- City List -->
+        <div id="city-list">
+            <h3>Top 5 Cities in the Selected Country</h3>
+            <div id="city-info"></div>
+        </div>
+    </div>
+
+    <script>
+        const continentCountryMapping = {
+            "Africa": [
+                { name: "Algeria", cities: ["Algiers", "Oran", "Constantine", "Annaba", "Blida"] },
+                { name: "Angola", cities: ["Luanda", "Lubango", "Lobito", "Kuito", "Malanje"] },
+                { name: "Egypt", cities: ["Cairo", "Alexandria", "Giza", "Shubra El Kheima", "Port Said"] },
+                { name: "Nigeria", cities: ["Lagos", "Abuja", "Kano", "Ibadan", "Port Harcourt"] },
+                { name: "South Africa", cities: ["Cape Town", "Johannesburg", "Durban", "Pretoria", "Port Elizabeth"] },
+                // Add more African countries and cities as needed
+            ],
+            "Asia": [
+                { name: "China", cities: ["Beijing", "Shanghai", "Guangzhou", "Shenzhen", "Chengdu"] },
+                { name: "India", cities: ["Delhi", "Mumbai", "Kolkata", "Bangalore", "Chennai"] },
+                { name: "Japan", cities: ["Tokyo", "Osaka", "Yokohama", "Nagoya", "Sapporo"] },
+                { name: "South Korea", cities: ["Seoul", "Busan", "Incheon", "Daegu", "Daejeon"] },
+                { name: "Indonesia", cities: ["Jakarta", "Surabaya", "Bandung", "Medan", "Makassar"] },
+                // Add more Asian countries and cities as needed
+            ],
+            "Europe": [
+                { name: "France", cities: ["Paris", "Marseille", "Lyon", "Toulouse", "Nice"] },
+                { name: "Germany", cities: ["Berlin", "Hamburg", "Munich", "Cologne", "Frankfurt"] },
+                { name: "Italy", cities: ["Rome", "Milan", "Naples", "Turin", "Palermo"] },
+                { name: "Spain", cities: ["Madrid", "Barcelona", "Valencia", "Seville", "Malaga"] },
+                { name: "United Kingdom", cities: ["London", "Manchester", "Birmingham", "Leeds", "Glasgow"] },
+                // Add more European countries and cities as needed
+            ],
+            "North America": [
+                { name: "United States", cities: ["New York", "Los Angeles", "Chicago", "Houston", "Phoenix"] },
+                { name: "Canada", cities: ["Toronto", "Vancouver", "Montreal", "Calgary", "Ottawa"] },
+                { name: "Mexico", cities: ["Mexico City", "Guadalajara", "Monterrey", "Cancun", "Puebla"] },
+                { name: "Cuba", cities: ["Havana", "Santiago de Cuba", "Camaguey", "Holguin", "Cienfuegos"] },
+                { name: "Honduras", cities: ["Tegucigalpa", "San Pedro Sula", "Choluteca", "La Ceiba", "Comayagua"] },
+                // Add more North American countries and cities as needed
+            ],
+            "Oceania": [
+                { name: "Australia", cities: ["Sydney", "Melbourne", "Brisbane", "Perth", "Adelaide"] },
+                { name: "New Zealand", cities: ["Auckland", "Wellington", "Christchurch", "Hamilton", "Dunedin"] },
+                { name: "Papua New Guinea", cities: ["Port Moresby", "Lae", "Mount Hagen", "Madang", "Goroka"] },
+                // Add more Oceania countries and cities as needed
+            ],
+            "South America": [
+                { name: "Brazil", cities: ["São Paulo", "Rio de Janeiro", "Brasília", "Salvador", "Fortaleza"] },
+                { name: "Argentina", cities: ["Buenos Aires", "Córdoba", "Rosario", "Mendoza", "La Plata"] },
+                { name: "Colombia", cities: ["Bogotá", "Medellín", "Cali", "Barranquilla", "Cartagena"] },
+                { name: "Peru", cities: ["Lima", "Arequipa", "Cusco", "Trujillo", "Chiclayo"] },
+                { name: "Venezuela", cities: ["Caracas", "Maracaibo", "Valencia", "Barquisimeto", "Maracay"] },
+                // Add more South American countries and cities as needed
+            ]
+        };
+
+        const continentSelect = document.getElementById("continent-select");
+        const countrySelect = document.getElementById("country-select");
+        const cityInfoDiv = document.getElementById("city-info");
+
+        continentSelect.addEventListener("change", function() {
+            const continent = continentSelect.value;
+            if (continent) {
+                populateCountries(continent);
+            } else {
+                countrySelect.innerHTML = '<option value="">-- Select Country --</option>';
+                countrySelect.disabled = true;
+            }
+        });
+
+        countrySelect.addEventListener("change", function() {
+            const country = countrySelect.value;
+            if (country) {
+                fetchCities(country);
+            }
+        });
+
+        function populateCountries(continent) {
+            const countries = continentCountryMapping[continent];
+            countrySelect.innerHTML = '<option value="">-- Select Country --</option>';
+            countries.forEach(country => {
+                countrySelect.innerHTML += `<option value="${country.name}">${country.name}</option>`;
+            });
+            countrySelect.disabled = false;
+        }
+
+        function fetchCities(country) {
+            cityInfoDiv.innerHTML = 'Loading cities...';
+
+            const selectedCountry = continentCountryMapping[continentSelect.value].find(c => c.name === country);
+
+            if (selectedCountry) {
+                displayCityInfo(selectedCountry.cities);
+            } else {
+                cityInfoDiv.innerHTML = 'No cities found for this country.';
+            }
+        }
+
+        function displayCityInfo(cities) {
+            cityInfoDiv.innerHTML = '';
+            cities.forEach(city => {
+                cityInfoDiv.innerHTML += `
+                    <div class="city">
+                        <h4>${city}</h4>
+                    </div>
+                `;
+            });
+        }
+    </script>
+
+</body>
+</html>
